@@ -1,21 +1,22 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { useFonts } from 'expo-font';
+export { ErrorBoundary } from 'expo-router';
+import 'src/i18n/Intl';
+import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { NativeBaseProvider } from 'native-base';
 import { SplashScreen, Stack } from 'expo-router';
 import { useEffect } from 'react';
-import { useColorScheme } from 'react-native';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
+import { useFonts } from 'expo-font';
+import * as React from 'react';
+import AppProvider from './_app';
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import TypesafeI18n from 'src/i18n/i18n-react';
+import { I18nextProvider } from 'react-i18next';
+import i18next from 'i18next';
+import ReduxProvider from 'src/redux/store/ReduxProvider';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -24,7 +25,6 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -42,15 +42,30 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
-function RootLayoutNav() {
-  const colorScheme = useColorScheme();
-
+function App() {
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <I18nextProvider i18n={i18next}>
+      <NativeBaseProvider isSSR={false}>
+        <ThemeProvider value={DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="register" />
+          </Stack>
+        </ThemeProvider>
+      </NativeBaseProvider>
+    </I18nextProvider>
+  );
+}
+
+function RootLayoutNav() {
+  return (
+    <ReduxProvider>
+      <TypesafeI18n locale="th">
+        <AppProvider>
+          <App />
+        </AppProvider>
+      </TypesafeI18n>
+    </ReduxProvider>
   );
 }
